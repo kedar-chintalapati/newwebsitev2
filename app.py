@@ -5,7 +5,9 @@ import folium
 from streamlit_folium import folium_static
 import xmltodict
 
-# --- PAGE CONFIGURATION ---
+# -------------------------------
+# PAGE & GENERAL CONFIG
+# -------------------------------
 st.set_page_config(
     page_title="Cancer Support App",
     layout="wide",
@@ -13,104 +15,89 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CUSTOM CSS WITH ANIMATIONS ---
+# -------------------------------
+# CUSTOM CSS & VIDEO BACKGROUND
+# -------------------------------
+# IMPORTANT:
+# - The video URL below is just an example from Pexels (royalty-free).
+# - Replace it with your own hosted video or a different link.
+# - Or switch to a pure CSS animation approach if you prefer.
 st.markdown(
     """
     <style>
-    /* 
-     =============================================================================
-       0. IMPORT FONTS 
-     =============================================================================
-    */
+    /* 1. Hide Streamlit header & footer */
+    [data-testid="stHeader"] {display: none !important;}
+    footer {visibility: hidden;}
+
+    /* 2. Import Google Font (Poppins) */
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
-    /* 
-     =============================================================================
-       1. OVERRIDE STREAMLIT'S DEFAULT (LIGHT) THEME
-         Target modern Streamlit containers by data-testid or class:
-         - stAppViewContainer: main page area
-         - stSidebar: the sidebar area
-     =============================================================================
-    */
+    /* 3. Body resets */
     html, body, [data-testid="stAppViewContainer"] {
-        margin: 0; 
+        margin: 0;
         padding: 0;
         font-family: 'Poppins', sans-serif;
+        background-color: #000000 !important; /* fallback if video fails */
+        overflow-x: hidden; /* no horizontal scroll */
         color: #FFFFFF !important;
-        background: linear-gradient(135deg, #232526, #414345, #232526);
-        background-size: 600% 600%;
-        animation: gradientBG 20s ease infinite;
     }
-    [data-testid="stSidebar"] {
-        background: rgba(0, 0, 0, 0.85) !important;
+
+    /* 4. Fullscreen Video Background 
+       - You can replace the MP4 source below with your own link or 
+         a short, looped, royalty-free clip you host somewhere.
+    */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: -2; /* behind everything */
+      background: #000000; /* fallback */
     }
-    /* Force the main block container to be transparent */
-    .css-18e3th9, .css-1cpxqw2, .css-1d391kg, .block-container {
+    /* We'll place an actual <video> in the HTML below, absolutely positioned. */
+
+    /* 5. Make main block container transparent, so video shows through */
+    .block-container, .main, .css-18e3th9, .css-1cpxqw2, .css-1d391kg {
         background: transparent !important;
     }
 
-    @keyframes gradientBG {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    /* 6. Fancy Sidebar */
+    [data-testid="stSidebar"] {
+        background: rgba(10, 10, 10, 0.8) !important;
+        backdrop-filter: blur(8px);
+    }
+    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] li, [data-testid="stSidebar"] div, [data-testid="stSidebar"] span {
+        color: #EEE !important;
+        text-shadow: 1px 1px 2px #000000;
     }
 
-    /* Hide default Streamlit menu and footer */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-
-    /* 
-     =============================================================================
-       2. SCROLLBAR
-     =============================================================================
+    /* 7. Scroll Snap for Full-Screen Sections 
+       - This will make each "section" snap into view on scroll.
+       - The .section class will be assigned to each major block.
     */
-    ::-webkit-scrollbar {
-        width: 8px;
+    html {
+      scroll-behavior: smooth; /* smooth scrolling */
     }
-    ::-webkit-scrollbar-track {
-        background: #1c1c1c;
+    [data-testid="stAppViewContainer"] {
+      scroll-snap-type: y mandatory;
     }
-    ::-webkit-scrollbar-thumb {
-        background-color: #666;
-        border-radius: 4px;
+    .section {
+      scroll-snap-align: start;
+      min-height: 100vh;
+      padding: 60px 20px;
     }
 
-    /* 
-     =============================================================================
-       3. HEADINGS & TEXT
-     =============================================================================
-    */
+    /* 8. Headings & Neon Glow */
     h1, h2, h3, h4 {
-        font-family: 'Poppins', sans-serif;
-        text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.8),
-                     0 0 8px rgba(255, 255, 255, 0.1);
+        text-shadow: 0 0 8px rgba(255,255,255,0.2),
+                     1px 1px 6px rgba(0,0,0,0.8);
+        font-weight: 600;
         color: #FFFFFF;
     }
-    h1 {
-        font-size: 3rem !important;
-        font-weight: 600;
-    }
-    h2 {
-        font-size: 2.2rem !important;
-    }
-    h3 {
-        font-size: 1.6rem !important;
-    }
-    h4 {
-        font-size: 1.3rem !important;
-    }
-    p, div, label, span, li, a, button {
-        color: #EEE !important;
-        font-family: 'Poppins', sans-serif !important;
-    }
 
-    /* 
-     =============================================================================
-       4. BUTTONS
-     =============================================================================
-    */
+    /* 9. Buttons */
     div.stButton > button {
-        background: linear-gradient(to right, #6a11cb, #2575fc);
+        background: linear-gradient(to right, #ff0080, #7928ca);
         color: #fff;
         border: none;
         border-radius: 30px;
@@ -126,28 +113,19 @@ st.markdown(
         box-shadow: 0 6px 14px rgba(0,0,0,0.4);
     }
 
-    /* 
-     =============================================================================
-       5. FORM INPUTS
-     =============================================================================
-    */
+    /* 10. Inputs, Selects, Textareas */
     input, select, textarea {
-        border-radius: 6px !important;
         background-color: rgba(50, 50, 60, 0.8) !important;
         color: #fff !important;
         border: 1px solid #555 !important;
-        font-family: 'Poppins', sans-serif;
+        border-radius: 6px !important;
     }
     input:focus, select:focus, textarea:focus {
         outline: none !important;
-        border: 1px solid #2575fc !important;
+        border: 1px solid #7928ca !important;
     }
 
-    /* 
-     =============================================================================
-       6. TABLES & DATAFRAMES
-     =============================================================================
-    */
+    /* 11. DataFrame styling */
     .stDataFrame, .stDataFrame table {
         color: #fff !important;
         background-color: #2f2f3f !important;
@@ -162,165 +140,117 @@ st.markdown(
         color: #f0f0f0 !important;
     }
 
-    /* 
-     =============================================================================
-       7. HERO / SECTION STYLING
-     =============================================================================
-    */
-    .hero-section {
-        position: relative;
-        text-align: center; 
-        padding: 80px 20px; 
-        margin-bottom: 2rem;
-        background: rgba(0, 0, 0, 0.4);
-        border-radius: 10px;
-        overflow: hidden;
+    /* 12. MultiSelect / Dropdown fix for text color */
+    .stMultiSelect, .stMultiSelect div[role="option"] {
+        color: #fff !important;
+        background-color: #333 !important;
     }
-    .hero-section::before {
-        content: "";
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(#ffffff33, #00000000);
-        animation: pulse 6s infinite;
-        z-index: 1;
+    .stMultiSelect .css-1wa3eu0-placeholder {
+        color: #aaa !important;
     }
-    @keyframes pulse {
-        0% { transform: scale(1); opacity: 0.7; }
-        50% { transform: scale(1.2); opacity: 0.3; }
-        100% { transform: scale(1); opacity: 0.7; }
+
+    /* 13. Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 8px;
     }
-    .hero-content {
-        position: relative;
-        z-index: 2;
-        max-width: 800px;
-        margin: 0 auto;
+    ::-webkit-scrollbar-track {
+        background: #1c1c1c;
     }
-    .hero-content h1 {
-        font-size: 3.5rem;
-        margin-bottom: 0.5rem;
-        color: #fff;
-        text-shadow: 2px 2px 10px rgba(0,0,0,0.7),
-                     0 0 10px rgba(255,255,255,0.2);
+    ::-webkit-scrollbar-thumb {
+        background-color: #666;
+        border-radius: 4px;
     }
-    .hero-content p {
-        font-size: 1.2rem;
-        line-height: 1.6;
-        color: #ddd;
-    }
+
     </style>
+
+    <!-- Add a fixed video element behind everything -->
+    <video autoplay muted loop playsinline 
+           style="
+             position: fixed;
+             top: 0; left: 0;
+             min-width: 100%; 
+             min-height: 100%;
+             object-fit: cover;
+             z-index: -3;
+             opacity: 0.5;"
+    >
+      <source src="https://player.vimeo.com/external/324388253.sd.mp4?s=3ea8866bf71e51dddc6097514e2df978dc4ca09f&profile_id=165" type="video/mp4">
+      <!-- Fallback if the video doesn't load -->
+    </video>
     """,
     unsafe_allow_html=True
 )
 
-# --- SIDEBAR NAVIGATION ---
+# -------------------------------
+# SIDEBAR NAVIGATION (ANCHORS)
+# -------------------------------
 st.sidebar.title("Navigation")
-options = st.sidebar.radio("Go to", [
-    "Home",
-    "Locate Hospitals",
-    "Accommodation Resources",
-    "Latest Research",
-    "Financial Support",
-    "Clinical Trials",
-    "Emotional & Social Support",
-    "Interactive Tools & Extras"
-])
+st.sidebar.markdown("""
+<ul style="list-style:none; padding-left: 0;">
+  <li><a href="#home">Home</a></li>
+  <li><a href="#locate-hospitals">Locate Hospitals</a></li>
+  <li><a href="#accommodation-resources">Accommodation Resources</a></li>
+  <li><a href="#latest-research">Latest Research</a></li>
+  <li><a href="#financial-support">Financial Support</a></li>
+  <li><a href="#clinical-trials">Clinical Trials</a></li>
+  <li><a href="#emotional-support">Emotional & Social Support</a></li>
+  <li><a href="#interactive-tools">Interactive Tools & Extras</a></li>
+</ul>
+""", unsafe_allow_html=True)
 
-# =========================
-#        HOME PAGE
-# =========================
-if options == "Home":
-    # Hero Section
-    st.markdown(
-        """
-        <div class="hero-section">
-            <div class="hero-content">
-                <h1>Cancer Support Web Application</h1>
-                <p>A comprehensive platform to assist cancer patients and their families 
-                   with hospital searches, accommodation resources, latest research, 
-                   clinical trials, financial support, and more.</p>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+# -------------------------------
+# 1. HOME SECTION
+# -------------------------------
+st.markdown('<div class="section" id="home"></div>', unsafe_allow_html=True)
+st.markdown("""
+## Home
+### Cancer Support Web Application
+A comprehensive platform to assist cancer patients and their families with hospital searches, 
+accommodation resources, latest research, clinical trials, financial support, and more.
+---
+""")
 
-    st.markdown("""
-    Welcome to the **Cancer Support Web Application**. Navigate through the sidebar to access various sections:
+st.image(
+    "https://www.cancer.org/content/dam/cancer-org/images/logos/cancerorg-logo.png",
+    use_column_width=True
+)
 
-    - **Locate Hospitals**: Find top-rated cancer hospitals near you.
-    - **Accommodation Resources**: Discover lodging options during treatment.
-    - **Latest Research**: Stay updated with the newest cancer research.
-    - **Financial Support**: Learn about financial relief and legal rights.
-    - **Clinical Trials**: Find relevant clinical trials for your condition.
-    - **Emotional & Social Support**: Access mental health resources and support groups.
-    - **Interactive Tools & Extras**: Utilize tools like checklists and donation hubs.
-    """)
+# -------------------------------
+# 2. LOCATE HOSPITALS
+# -------------------------------
+st.markdown('<div class="section" id="locate-hospitals"></div>', unsafe_allow_html=True)
+st.title("Locate the Best Cancer Hospitals Nearby")
 
-    st.image(
-        "https://www.cancer.org/content/dam/cancer-org/images/logos/cancerorg-logo.png",
-        use_column_width=True
-    )
+st.markdown("""
+Find top-rated cancer hospitals specializing in your area. Use the interactive map below to explore nearby facilities.
+""")
 
-# =========================
-#  LOCATE HOSPITALS PAGE
-# =========================
-elif options == "Locate Hospitals":
-    st.title("Locate the Best Cancer Hospitals Nearby")
-    
-    st.markdown("""
-    **Find top-rated cancer hospitals specializing in your area. Use the interactive map below to explore nearby facilities.**
-    """)
-    
-    # User input for location
-    location = st.text_input("Enter your city or ZIP code:", "New York")
-    
-    if st.button("Find Hospitals"):
-        with st.spinner("Searching for hospitals..."):
-            headers = {
-                "User-Agent": "CancerSupportApp/1.0 (your_email@example.com)"
-            }
-            geocode_url = "https://nominatim.openstreetmap.org/search"
-            geocode_params = {
-                "q": location,
-                "format": "json",
-                "limit": 1
-            }
-            
-            try:
-                geocode_response = requests.get(geocode_url, headers=headers, params=geocode_params, timeout=10)
-                geocode_response.raise_for_status()
-                geocode_data = geocode_response.json()
-            except requests.exceptions.HTTPError as http_err:
-                st.error(f"HTTP error occurred during geocoding: {http_err}")
-                st.stop()
-            except requests.exceptions.Timeout:
-                st.error("The request timed out. Please try again later.")
-                st.stop()
-            except requests.exceptions.RequestException as req_err:
-                st.error(f"An error occurred during geocoding: {req_err}")
-                st.stop()
-            except ValueError:
-                st.error("Received an invalid response from the geocoding service.")
-                st.stop()
-            
-            if geocode_data:
-                lat = geocode_data[0].get('lat')
-                lon = geocode_data[0].get('lon')
-                
-                if not lat or not lon:
-                    st.error("Could not retrieve latitude and longitude for the specified location.")
-                    st.stop()
-                
-                try:
-                    lat = float(lat)
-                    lon = float(lon)
-                except ValueError:
-                    st.error("Invalid latitude or longitude values received.")
-                    st.stop()
-                
+location = st.text_input("Enter your city or ZIP code:", "New York", key="locate_input")
+if st.button("Find Hospitals", key="locate_button"):
+    with st.spinner("Searching for hospitals..."):
+        headers = {
+            "User-Agent": "CancerSupportApp/1.0 (your_email@example.com)"
+        }
+        geocode_url = "https://nominatim.openstreetmap.org/search"
+        geocode_params = {
+            "q": location,
+            "format": "json",
+            "limit": 1
+        }
+        
+        try:
+            geocode_response = requests.get(geocode_url, headers=headers, params=geocode_params, timeout=10)
+            geocode_response.raise_for_status()
+            geocode_data = geocode_response.json()
+        except Exception as e:
+            st.error(f"Geocoding error: {e}")
+            st.stop()
+        
+        if geocode_data:
+            lat = geocode_data[0].get('lat')
+            lon = geocode_data[0].get('lon')
+            if lat and lon:
+                lat, lon = float(lat), float(lon)
                 overpass_url = "http://overpass-api.de/api/interpreter"
                 overpass_query = f"""
                 [out:json];
@@ -331,24 +261,14 @@ elif options == "Locate Hospitals":
                 );
                 out center;
                 """
-                
                 try:
                     overpass_response = requests.get(overpass_url, params={'data': overpass_query}, headers=headers, timeout=10)
                     overpass_response.raise_for_status()
                     overpass_data = overpass_response.json()
-                except requests.exceptions.HTTPError as http_err:
-                    st.error(f"HTTP error occurred while fetching hospitals: {http_err}")
+                except Exception as e:
+                    st.error(f"Overpass API error: {e}")
                     st.stop()
-                except requests.exceptions.Timeout:
-                    st.error("The request to Overpass API timed out. Please try again later.")
-                    st.stop()
-                except requests.exceptions.RequestException as req_err:
-                    st.error(f"An error occurred while fetching hospitals: {req_err}")
-                    st.stop()
-                except ValueError:
-                    st.error("Received an invalid response from the Overpass API.")
-                    st.stop()
-                
+
                 hospitals = []
                 for element in overpass_data.get('elements', []):
                     tags = element.get('tags', {})
@@ -364,348 +284,332 @@ elif options == "Locate Hospitals":
                 
                 if hospitals:
                     df_hospitals = pd.DataFrame(hospitals)
-                    
-                    # Display on map
+                    # Display map
                     m = folium.Map(location=[lat, lon], zoom_start=12)
-                    folium.Marker(
-                        [lat, lon],
-                        popup="Your Location",
-                        icon=folium.Icon(color='red', icon='home')
-                    ).add_to(m)
-                    
+                    folium.Marker([lat, lon], popup="Your Location",
+                                  icon=folium.Icon(color='red', icon='home')).add_to(m)
                     for idx, row in df_hospitals.iterrows():
-                        folium.Marker(
-                            [row['Latitude'], row['Longitude']],
-                            popup=row['Name'],
-                            icon=folium.Icon(color='blue', icon='plus-sign')
-                        ).add_to(m)
-                    
+                        folium.Marker([row['Latitude'], row['Longitude']],
+                                      popup=row['Name'],
+                                      icon=folium.Icon(color='blue', icon='plus-sign')).add_to(m)
                     folium_static(m, width=700, height=500)
                     
                     st.subheader("List of Hospitals")
                     st.dataframe(df_hospitals)
                 else:
-                    st.error("No hospitals found within a 50km radius.")
+                    st.warning("No hospitals found within a 50km radius.")
             else:
-                st.error("Location not found. Please try a different location.")
+                st.warning("Could not retrieve latitude/longitude.")
+        else:
+            st.warning("Location not found. Please try again.")
 
-# =========================
-#  ACCOMMODATION RESOURCES
-# =========================
-elif options == "Accommodation Resources":
-    st.title("Accommodation Resources")
-    st.markdown("""
-    **Find lodging solutions for patients and their families during treatment. Below are some recommended resources:**
-    """)
-    
-    st.header("Ronald McDonald House Charities")
-    st.markdown("""
-    [Ronald McDonald House](https://www.rmhc.org/) provides a place for families to stay while their loved ones receive treatment.
-    """)
-    
-    st.header("Local Support Housing Programs")
-    st.markdown("""
-    - **CancerCare Housing Assistance**: [CancerCare](https://www.cancercare.org/)
-    - **Hospice Housing Programs**: [Hospice Foundation](https://hospicefoundation.org/)
-    """)
-    
-    st.header("Low-Cost Hotels Near Treatment Centers")
-    st.markdown("""
-    - [Booking.com](https://www.booking.com/) - Filter by proximity to your treatment center.
-    - [Airbnb](https://www.airbnb.com/) - Affordable lodging options.
-    """)
-    
-    st.header("Booking Links")
-    st.markdown("""
-    - [Reserve a Ronald McDonald House](https://www.rmhc.org/find-a-house)
-    - [CancerCare Housing Assistance](https://www.cancercare.org/support_resources/housing_assistance)
-    """)
+# -------------------------------
+# 3. ACCOMMODATION RESOURCES
+# -------------------------------
+st.markdown('<div class="section" id="accommodation-resources"></div>', unsafe_allow_html=True)
+st.title("Accommodation Resources")
+st.markdown("""
+**Find lodging solutions for patients and their families during treatment. Below are some recommended resources:**
+""")
 
-# =========================
-#   LATEST RESEARCH
-# =========================
-elif options == "Latest Research":
-    st.title("Latest Research and AI-Driven Insights")
-    st.markdown("""
-    **Stay updated with the latest research, treatment advancements, and breakthroughs related to your specific cancer type.**
-    """)
-    
-    cancer_type = st.text_input("Enter your cancer type (e.g., Breast Cancer):", "Breast Cancer")
-    
-    if st.button("Get Latest Research"):
-        with st.spinner("Fetching latest research articles..."):
-            base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
-            params = {
-                "db": "pubmed",
-                "term": cancer_type,
-                "retmax": 10,
-                "sort": "pub date",
-                "retmode": "json"
-            }
+st.header("Ronald McDonald House Charities")
+st.markdown("""
+[Ronald McDonald House](https://www.rmhc.org/) provides a place for families to stay while their loved ones receive treatment.
+""")
+
+st.header("Local Support Housing Programs")
+st.markdown("""
+- **CancerCare Housing Assistance**: [CancerCare](https://www.cancercare.org/)
+- **Hospice Housing Programs**: [Hospice Foundation](https://hospicefoundation.org/)
+""")
+
+st.header("Low-Cost Hotels Near Treatment Centers")
+st.markdown("""
+- [Booking.com](https://www.booking.com/) - Filter by proximity to your treatment center.
+- [Airbnb](https://www.airbnb.com/) - Affordable lodging options.
+""")
+
+st.header("Booking Links")
+st.markdown("""
+- [Reserve a Ronald McDonald House](https://www.rmhc.org/find-a-house)
+- [CancerCare Housing Assistance](https://www.cancercare.org/support_resources/housing_assistance)
+""")
+
+# -------------------------------
+# 4. LATEST RESEARCH
+# -------------------------------
+st.markdown('<div class="section" id="latest-research"></div>', unsafe_allow_html=True)
+st.title("Latest Research and AI-Driven Insights")
+st.markdown("""
+**Stay updated with the latest research, treatment advancements, and breakthroughs related to your specific cancer type.**
+""")
+
+cancer_type = st.text_input("Enter your cancer type (e.g., Breast Cancer):", "Breast Cancer", key="research_input")
+if st.button("Get Latest Research", key="research_button"):
+    with st.spinner("Fetching latest research articles..."):
+        base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
+        params = {
+            "db": "pubmed",
+            "term": cancer_type,
+            "retmax": 10,
+            "sort": "pub date",
+            "retmode": "json"
+        }
+        try:
             response = requests.get(base_url, params=params).json()
             id_list = response['esearchresult']['idlist']
-            
-            if id_list:
-                fetch_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
-                fetch_params = {
-                    "db": "pubmed",
-                    "id": ",".join(id_list),
-                    "retmode": "xml",
-                    "rettype": "abstract"
-                }
+        except Exception as e:
+            st.error(f"Error searching PubMed: {e}")
+            st.stop()
+
+        if id_list:
+            fetch_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
+            fetch_params = {
+                "db": "pubmed",
+                "id": ",".join(id_list),
+                "retmode": "xml",
+                "rettype": "abstract"
+            }
+            try:
                 fetch_response = requests.get(fetch_url, params=fetch_params).text
+                data_dict = xmltodict.parse(fetch_response)
+                articles = data_dict.get('PubmedArticleSet', {}).get('PubmedArticle', [])
+                if isinstance(articles, dict):
+                    articles = [articles]
                 
-                # Parse XML response using xmltodict
-                try:
-                    data_dict = xmltodict.parse(fetch_response)
-                    articles = data_dict.get('PubmedArticleSet', {}).get('PubmedArticle', [])
-                    
-                    if isinstance(articles, dict):
-                        articles = [articles]
-                    
-                    st.markdown("### Latest Research Articles")
-                    for article in articles:
-                        title = article.get('MedlineCitation', {}).get('Article', {}).get('ArticleTitle', 'No Title')
-                        pmid = article.get('MedlineCitation', {}).get('PMID', {}).get('#text', '')
-                        link = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/"
-                        st.markdown(f"#### [{title}]({link})")
-                except Exception as e:
-                    st.error("Error parsing research articles.")
-            else:
-                st.warning("No articles found for the specified cancer type.")
-
-    st.markdown("---")
-    st.header("Stay Informed")
-    st.markdown("""
-    **Subscribe to email notifications** to receive updates on newly published studies and breakthroughs.
-
-    *Feature coming soon!*
-    """)
-
-    st.header("AI Chatbot Assistance")
-    st.markdown("""
-    **Have questions about the latest research or treatments?**
-
-    *AI chatbot integration is under development!*
-    """)
-
-# =========================
-#  FINANCIAL SUPPORT
-# =========================
-elif options == "Financial Support":
-    st.title("Financial Support and Legal Options")
-    st.markdown("""
-    **Access information on financial relief, legal rights, and assistance programs to help manage the financial burden of cancer treatment.**
-    """)
-    
-    st.header("Corporate Angel Network")
-    st.markdown("""
-    **Details on Corporate Angel Network**:
-    - **Free Flights for Patients**: Assistance with travel arrangements for treatment.
-    - **How to Apply**: [Corporate Angel Network Application](https://apexlg.com/an-example-of-social-entrepreneurship-from-nbcs-shark-tank/)
-    """)
-    
-    st.header("Tax-Free Retirement Withdrawals")
-    st.markdown("""
-    Stage IV patients can withdraw money from retirement accounts tax-free under specific conditions.
-    
-    **More Information**:
-    - [Diana Award](https://diana-award.org.uk/)
-    - [IRS Guidelines on Retirement Withdrawals](https://www.irs.gov/retirement-plans/retirement-plans-faqs-regarding-required-minimum-distributions)
-    """)
-    
-    st.header("Insurance Navigation")
-    st.markdown("""
-    - **Understanding Coverage**: [Health Insurance Basics](https://www.healthcare.gov/glossary/)
-    - **Assistance Programs for Uninsured Patients**: [CancerCare Assistance](https://www.cancercare.org/)
-    """)
-    
-    st.header("Interactive Financial Calculator")
-    st.markdown("Estimate potential savings, grants, or tax benefits based on your data.")
-    
-    with st.form("financial_calculator"):
-        income = st.number_input("Enter your annual income ($):", min_value=0, value=50000, step=1000)
-        retirement_withdraw = st.number_input("Enter amount to withdraw from retirement account ($):", min_value=0, value=10000, step=1000)
-        submitted = st.form_submit_button("Calculate")
-        
-        if submitted:
-            # Placeholder calculation: Assuming 0% tax for Stage IV withdrawals
-            tax = 0  # Placeholder logic
-            st.write(f"**Estimated Tax on Withdrawal:** ${tax}")
-            st.success("Calculation completed. Please consult a financial advisor for accurate information.")
-
-# =========================
-#   CLINICAL TRIALS
-# =========================
-elif options == "Clinical Trials":
-    st.title("Clinical Trials Finder")
-    st.markdown("""
-    **Find relevant clinical trials based on your condition, location, and treatment phase. Participate in studies to access cutting-edge treatments.**
-    """)
-    
-    # User Inputs
-    cancer_type = st.text_input("Enter your cancer type (e.g., Lung Cancer):", "Lung Cancer")
-    location = st.text_input("Enter your location or ZIP code:", "New York")
-    phase = st.selectbox("Select Trial Phase:", ["All", "Phase 1", "Phase 2", "Phase 3", "Phase 4"])
-    
-    if st.button("Find Clinical Trials"):
-        with st.spinner("Searching for clinical trials..."):
-            query = f"{cancer_type}[Condition] AND {location}[Location]"
-            if phase != "All":
-                query += f" AND {phase}[Phase]"
-            
-            base_url = "https://clinicaltrials.gov/api/query/study/search/brief"
-            params = {
-                "expr": query,
-                "min_rnk": 1,
-                "max_rnk": 20,
-                "fmt": "xml"
-            }
-            headers = {
-                "User-Agent": "CancerSupportApp/1.0 (your_email@example.com)"
-            }
-            
-            try:
-                response = requests.get(base_url, params=params, headers=headers, timeout=10)
-                response.raise_for_status()
-            except requests.exceptions.HTTPError as http_err:
-                st.error(f"HTTP error occurred while fetching clinical trials: {http_err}")
-                st.stop()
-            except requests.exceptions.Timeout:
-                st.error("The request timed out. Please try again later.")
-                st.stop()
-            except requests.exceptions.RequestException as req_err:
-                st.error(f"An error occurred while fetching clinical trials: {req_err}")
-                st.stop()
-            
-            try:
-                data_dict = xmltodict.parse(response.content)
-                studies = data_dict.get('clinical_studies', {}).get('clinical_study', [])
-                
-                if isinstance(studies, dict):
-                    studies = [studies]
-                
-                if studies:
-                    st.markdown("### Found Clinical Trials")
-                    for study in studies:
-                        title = study.get('official_title', 'No Title')
-                        status = study.get('overall_status', 'Status Unknown')
-                        
-                        location_info = study.get('location_countries', {}).get('location_country', [])
-                        if isinstance(location_info, dict):
-                            location_info = [location_info]
-                        locations = ", ".join([loc.get('location', 'Unknown') for loc in location_info])
-                        
-                        phase_text = study.get('phase', 'N/A')
-                        nct_id = study.get('id_info', {}).get('nct_id', '')
-                        link = f"https://clinicaltrials.gov/ct2/show/{nct_id}" if nct_id else "#"
-                        
-                        st.markdown(f"#### [{title}]({link})")
-                        st.write(f"**Status:** {status}")
-                        st.write(f"**Phase:** {phase_text}")
-                        st.write(f"**Locations:** {locations}")
-                        st.markdown("---")
-                else:
-                    st.warning("No clinical trials found for the given criteria.")
+                st.markdown("### Latest Research Articles")
+                for article in articles:
+                    title = article.get('MedlineCitation', {}).get('Article', {}).get('ArticleTitle', 'No Title')
+                    pmid = article.get('MedlineCitation', {}).get('PMID', {}).get('#text', '')
+                    link = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/"
+                    st.markdown(f"#### [{title}]({link})")
             except Exception as e:
-                st.error("Error parsing clinical trials data.")
-    
-    st.markdown("---")
-    st.header("Enrollment Guide")
-    st.markdown("""
-    **How to Enroll in a Trial**:
-    1. **Consult Your Doctor**: Discuss eligibility and suitability.
-    2. **Contact the Study Team**: Reach out via the provided links.
-    3. **Understand the Commitment**: Review the study requirements and benefits.
-    
-    **Pros and Cons of Participation**:
-    - **Pros**: Access to new treatments, close monitoring, contributing to research.
-    - **Cons**: Possible side effects, time commitment, uncertain outcomes.
-    """)
+                st.error(f"Error fetching PubMed abstracts: {e}")
+        else:
+            st.warning("No articles found for the specified cancer type.")
 
-# =========================
-# EMOTIONAL & SOCIAL SUPPORT
-# =========================
-elif options == "Emotional & Social Support":
-    st.title("Emotional and Social Support")
-    st.markdown("""
-    **Address mental health and community-building needs with the resources below.**
-    """)
-    
-    st.header("Counseling Options")
-    st.markdown("""
-    - **American Cancer Society Counseling Services**: [Find a Counselor](https://www.cancer.org/treatment/support-programs-and-services/find-support.html)
-    - **CancerCare Therapy Services**: [Access Therapy](https://www.cancercare.org/services/therapy)
-    - **Psychology Today**: [Find a Therapist](https://www.psychologytoday.com/us/therapists/cancer)
-    """)
-    
-    st.header("Support Groups")
-    st.markdown("""
-    - **Meetup**: [Cancer Support Groups](https://www.meetup.com/topics/cancer-support/)
-    - **Cancer Support Community**: [Join a Group](https://www.cancersupportcommunity.org/join-a-group)
-    - **Local Hospitals and Clinics**: Many offer in-person and virtual support groups.
-    """)
+st.markdown("---")
+st.header("Stay Informed")
+st.markdown("""
+**Subscribe to email notifications** to receive updates on newly published studies and breakthroughs.
 
-# =========================
-# INTERACTIVE TOOLS & EXTRAS
-# =========================
-elif options == "Interactive Tools & Extras":
-    st.title("Interactive Tools and Extras")
-    st.markdown("""
-    **Utilize the tools below to manage tasks and support your journey.**
-    """)
-    
-    st.header("Checklist Generator")
-    st.markdown("Create your personalized to-do list based on your needs.")
-    
-    with st.form("checklist_form"):
-        financial_tasks = st.multiselect("Financial Tasks", [
-            "Apply for insurance",
-            "Meet with financial advisor",
-            "Fill out tax forms",
-            "Explore Corporate Angel Network",
-            "Plan budget for treatments"
-        ])
-        medical_appointments = st.multiselect("Medical Appointments", [
-            "Schedule doctor's visit",
-            "Radiation therapy session",
-            "Chemotherapy session",
-            "Follow-up consultations",
-            "Get second opinion"
-        ])
-        other_tasks = st.multiselect("Other Tasks", [
-            "Call support group",
-            "Arrange transportation",
-            "Update personal documents",
-            "Organize living space",
-            "Plan meals"
-        ])
+*Feature coming soon!*
+""")
+
+st.header("AI Chatbot Assistance")
+st.markdown("""
+**Have questions about the latest research or treatments?**
+
+*AI chatbot integration is under development!*
+""")
+
+# -------------------------------
+# 5. FINANCIAL SUPPORT
+# -------------------------------
+st.markdown('<div class="section" id="financial-support"></div>', unsafe_allow_html=True)
+st.title("Financial Support and Legal Options")
+st.markdown("""
+**Access information on financial relief, legal rights, and assistance programs to help manage the financial burden of cancer treatment.**
+""")
+
+st.header("Corporate Angel Network")
+st.markdown("""
+**Details on Corporate Angel Network**:
+- **Free Flights for Patients**: Assistance with travel arrangements for treatment.
+- **How to Apply**: [Corporate Angel Network Application](https://apexlg.com/an-example-of-social-entrepreneurship-from-nbcs-shark-tank/)
+""")
+
+st.header("Tax-Free Retirement Withdrawals")
+st.markdown("""
+Stage IV patients can withdraw money from retirement accounts tax-free under specific conditions.
+
+**More Information**:
+- [Diana Award](https://diana-award.org.uk/)
+- [IRS Guidelines on Retirement Withdrawals](https://www.irs.gov/retirement-plans/retirement-plans-faqs-regarding-required-minimum-distributions)
+""")
+
+st.header("Insurance Navigation")
+st.markdown("""
+- **Understanding Coverage**: [Health Insurance Basics](https://www.healthcare.gov/glossary/)
+- **Assistance Programs for Uninsured Patients**: [CancerCare Assistance](https://www.cancercare.org/)
+""")
+
+st.header("Interactive Financial Calculator")
+st.markdown("Estimate potential savings, grants, or tax benefits based on your data.")
+
+with st.form("financial_calculator"):
+    income = st.number_input("Enter your annual income ($):", min_value=0, value=50000, step=1000)
+    retirement_withdraw = st.number_input("Enter amount to withdraw from retirement account ($):", min_value=0, value=10000, step=1000)
+    submitted = st.form_submit_button("Calculate")
+    if submitted:
+        # Placeholder calculation
+        tax = 0  # e.g., 0% for Stage IV
+        st.write(f"**Estimated Tax on Withdrawal:** ${tax}")
+        st.success("Calculation completed. Please consult a financial advisor for accurate information.")
+
+# -------------------------------
+# 6. CLINICAL TRIALS
+# -------------------------------
+st.markdown('<div class="section" id="clinical-trials"></div>', unsafe_allow_html=True)
+st.title("Clinical Trials Finder")
+st.markdown("""
+**Find relevant clinical trials based on your condition, location, and treatment phase. Participate in studies to access cutting-edge treatments.**
+""")
+
+cancer_type_ct = st.text_input("Enter your cancer type (e.g., Lung Cancer):", "Lung Cancer", key="ct_input")
+location_ct = st.text_input("Enter your location or ZIP code:", "New York", key="ct_loc")
+phase_ct = st.selectbox("Select Trial Phase:", ["All", "Phase 1", "Phase 2", "Phase 3", "Phase 4"], key="ct_phase")
+
+if st.button("Find Clinical Trials", key="ct_button"):
+    with st.spinner("Searching for clinical trials..."):
+        query = f"{cancer_type_ct}[Condition] AND {location_ct}[Location]"
+        if phase_ct != "All":
+            query += f" AND {phase_ct}[Phase]"
         
-        submitted = st.form_submit_button("Generate Checklist")
+        base_url = "https://clinicaltrials.gov/api/query/study/search/brief"
+        params = {
+            "expr": query,
+            "min_rnk": 1,
+            "max_rnk": 20,
+            "fmt": "xml"
+        }
+        headers = {
+            "User-Agent": "CancerSupportApp/1.0 (your_email@example.com)"
+        }
         
-        if submitted:
-            st.markdown("### Your Personalized Checklist")
-            if financial_tasks:
-                st.markdown("**Financial Tasks:**")
-                for task in financial_tasks:
-                    st.write(f"- [ ] {task}")
-            if medical_appointments:
-                st.markdown("**Medical Appointments:**")
-                for task in medical_appointments:
-                    st.write(f"- [ ] {task}")
-            if other_tasks:
-                st.markdown("**Other Tasks:**")
-                for task in other_tasks:
-                    st.write(f"- [ ] {task}")
+        try:
+            response = requests.get(base_url, params=params, headers=headers, timeout=10)
+            response.raise_for_status()
+        except Exception as e:
+            st.error(f"ClinicalTrials.gov error: {e}")
+            st.stop()
+        
+        try:
+            data_dict = xmltodict.parse(response.content)
+            studies = data_dict.get('clinical_studies', {}).get('clinical_study', [])
+            if isinstance(studies, dict):
+                studies = [studies]
+            
+            if studies:
+                st.markdown("### Found Clinical Trials")
+                for study in studies:
+                    title = study.get('official_title', 'No Title')
+                    status = study.get('overall_status', 'Status Unknown')
+                    
+                    location_info = study.get('location_countries', {}).get('location_country', [])
+                    if isinstance(location_info, dict):
+                        location_info = [location_info]
+                    locations = ", ".join([loc.get('location', 'Unknown') for loc in location_info])
+                    
+                    phase_text = study.get('phase', 'N/A')
+                    nct_id = study.get('id_info', {}).get('nct_id', '')
+                    link = f"https://clinicaltrials.gov/ct2/show/{nct_id}" if nct_id else "#"
+                    
+                    st.markdown(f"#### [{title}]({link})")
+                    st.write(f"**Status:** {status}")
+                    st.write(f"**Phase:** {phase_text}")
+                    st.write(f"**Locations:** {locations}")
+                    st.markdown("---")
+            else:
+                st.warning("No clinical trials found for the given criteria.")
+        except Exception as e:
+            st.error(f"Error parsing clinical trials data: {e}")
+
+st.markdown("---")
+st.header("Enrollment Guide")
+st.markdown("""
+**How to Enroll in a Trial**:
+1. **Consult Your Doctor**: Discuss eligibility and suitability.
+2. **Contact the Study Team**: Reach out via the provided links.
+3. **Understand the Commitment**: Review the study requirements and benefits.
+
+**Pros and Cons of Participation**:
+- **Pros**: Access to new treatments, close monitoring, contributing to research.
+- **Cons**: Possible side effects, time commitment, uncertain outcomes.
+""")
+
+# -------------------------------
+# 7. EMOTIONAL & SOCIAL SUPPORT
+# -------------------------------
+st.markdown('<div class="section" id="emotional-support"></div>', unsafe_allow_html=True)
+st.title("Emotional and Social Support")
+st.markdown("""
+**Address mental health and community-building needs with the resources below.**
+""")
+
+st.header("Counseling Options")
+st.markdown("""
+- **American Cancer Society Counseling Services**: [Find a Counselor](https://www.cancer.org/treatment/support-programs-and-services/find-support.html)
+- **CancerCare Therapy Services**: [Access Therapy](https://www.cancercare.org/services/therapy)
+- **Psychology Today**: [Find a Therapist](https://www.psychologytoday.com/us/therapists/cancer)
+""")
+
+st.header("Support Groups")
+st.markdown("""
+- **Meetup**: [Cancer Support Groups](https://www.meetup.com/topics/cancer-support/)
+- **Cancer Support Community**: [Join a Group](https://www.cancersupportcommunity.org/join-a-group)
+- **Local Hospitals and Clinics**: Many offer in-person and virtual support groups.
+""")
+
+# -------------------------------
+# 8. INTERACTIVE TOOLS & EXTRAS
+# -------------------------------
+st.markdown('<div class="section" id="interactive-tools"></div>', unsafe_allow_html=True)
+st.title("Interactive Tools and Extras")
+st.markdown("""
+**Utilize the tools below to manage tasks and support your journey.**
+""")
+
+st.header("Checklist Generator")
+st.markdown("Create your personalized to-do list based on your needs.")
+
+with st.form("checklist_form"):
+    financial_tasks = st.multiselect("Financial Tasks", [
+        "Apply for insurance",
+        "Meet with financial advisor",
+        "Fill out tax forms",
+        "Explore Corporate Angel Network",
+        "Plan budget for treatments"
+    ])
+    medical_appointments = st.multiselect("Medical Appointments", [
+        "Schedule doctor's visit",
+        "Radiation therapy session",
+        "Chemotherapy session",
+        "Follow-up consultations",
+        "Get second opinion"
+    ])
+    other_tasks = st.multiselect("Other Tasks", [
+        "Call support group",
+        "Arrange transportation",
+        "Update personal documents",
+        "Organize living space",
+        "Plan meals"
+    ])
     
-    st.markdown("---")
-    
-    st.header("Donation Hub")
-    st.markdown("""
-    **Support patients in need by donating to reputable charities and crowdfunding platforms:**
-    
-    - **CancerCare**: [Donate](https://www.cancercare.org/donate)
-    - **Ronald McDonald House Charities**: [Donate](https://www.rmhc.org/donate)
-    - **GoFundMe**: [Create a Fundraiser](https://www.gofundme.com/)
-    - **Crowdfunder**: [Start a Campaign](https://www.crowdfunder.com/)
-    """)
+    submitted = st.form_submit_button("Generate Checklist")
+    if submitted:
+        st.markdown("### Your Personalized Checklist")
+        if financial_tasks:
+            st.markdown("**Financial Tasks:**")
+            for task in financial_tasks:
+                st.write(f"- [ ] {task}")
+        if medical_appointments:
+            st.markdown("**Medical Appointments:**")
+            for task in medical_appointments:
+                st.write(f"- [ ] {task}")
+        if other_tasks:
+            st.markdown("**Other Tasks:**")
+            for task in other_tasks:
+                st.write(f"- [ ] {task}")
+
+st.markdown("---")
+
+st.header("Donation Hub")
+st.markdown("""
+**Support patients in need by donating to reputable charities and crowdfunding platforms:**
+
+- **CancerCare**: [Donate](https://www.cancercare.org/donate)
+- **Ronald McDonald House Charities**: [Donate](https://www.rmhc.org/donate)
+- **GoFundMe**: [Create a Fundraiser](https://www.gofundme.com/)
+- **Crowdfunder**: [Start a Campaign](https://www.crowdfunder.com/)
+""")
