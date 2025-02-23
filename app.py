@@ -3,61 +3,67 @@ import pandas as pd
 import requests
 import folium
 from streamlit_folium import folium_static
-from datetime import datetime
 import xmltodict
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="Cancer Support App",
     layout="wide",
-    page_icon=":hospital:"
+    page_icon=":hospital:",
+    initial_sidebar_state="expanded"
 )
 
 # --- CUSTOM CSS WITH ANIMATIONS ---
 st.markdown(
     """
     <style>
-    /* Hide default Streamlit menu and footer */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
+    /* 
+     =============================================================================
+       0. IMPORT FONTS 
+     =============================================================================
+    */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
     /* 
-     =========================================================
-       1. GLOBAL BACKGROUND ANIMATION 
-     =========================================================
+     =============================================================================
+       1. OVERRIDE STREAMLIT'S DEFAULT (LIGHT) THEME
+         Target modern Streamlit containers by data-testid or class:
+         - stAppViewContainer: main page area
+         - stSidebar: the sidebar area
+     =============================================================================
     */
-    body {
-        margin: 0; padding: 0;
+    html, body, [data-testid="stAppViewContainer"] {
+        margin: 0; 
+        padding: 0;
+        font-family: 'Poppins', sans-serif;
+        color: #FFFFFF !important;
         background: linear-gradient(135deg, #232526, #414345, #232526);
         background-size: 600% 600%;
         animation: gradientBG 20s ease infinite;
-        color: #FFFFFF !important;
-        font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+    [data-testid="stSidebar"] {
+        background: rgba(0, 0, 0, 0.85) !important;
+    }
+    /* Force the main block container to be transparent */
+    .css-18e3th9, .css-1cpxqw2, .css-1d391kg, .block-container {
+        background: transparent !important;
+    }
+
     @keyframes gradientBG {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
-    /* 
-     =========================================================
-       2. SIDEBAR STYLING
-     =========================================================
-    */
-    .css-1cpxqw2, .css-1d391kg, .css-18e3th9 {
-        background-color: rgba(10, 10, 10, 0.85) !important;
-        border-right: 1px solid #444 !important;
-    }
-    .css-1cpxqw2 a, .css-1d391kg a {
-        color: #DDD !important;
-        font-weight: 500 !important;
-    }
-    .css-1cpxqw2 .css-qrbaxs, .css-1d391kg .css-qrbaxs {
-        color: #FFF !important;
-    }
+    /* Hide default Streamlit menu and footer */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
 
-    /* Scrollbar */
+    /* 
+     =============================================================================
+       2. SCROLLBAR
+     =============================================================================
+    */
     ::-webkit-scrollbar {
         width: 8px;
     }
@@ -70,17 +76,19 @@ st.markdown(
     }
 
     /* 
-     =========================================================
+     =============================================================================
        3. HEADINGS & TEXT
-     =========================================================
+     =============================================================================
     */
     h1, h2, h3, h4 {
         font-family: 'Poppins', sans-serif;
         text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.8),
                      0 0 8px rgba(255, 255, 255, 0.1);
+        color: #FFFFFF;
     }
     h1 {
         font-size: 3rem !important;
+        font-weight: 600;
     }
     h2 {
         font-size: 2.2rem !important;
@@ -91,16 +99,15 @@ st.markdown(
     h4 {
         font-size: 1.3rem !important;
     }
-
-    /* Paragraphs */
-    p, div, label, span, li {
-        color: #eee !important;
+    p, div, label, span, li, a, button {
+        color: #EEE !important;
+        font-family: 'Poppins', sans-serif !important;
     }
 
     /* 
-     =========================================================
+     =============================================================================
        4. BUTTONS
-     =========================================================
+     =============================================================================
     */
     div.stButton > button {
         background: linear-gradient(to right, #6a11cb, #2575fc);
@@ -120,9 +127,9 @@ st.markdown(
     }
 
     /* 
-     =========================================================
+     =============================================================================
        5. FORM INPUTS
-     =========================================================
+     =============================================================================
     */
     input, select, textarea {
         border-radius: 6px !important;
@@ -137,9 +144,9 @@ st.markdown(
     }
 
     /* 
-     =========================================================
+     =============================================================================
        6. TABLES & DATAFRAMES
-     =========================================================
+     =============================================================================
     */
     .stDataFrame, .stDataFrame table {
         color: #fff !important;
@@ -156,18 +163,16 @@ st.markdown(
     }
 
     /* 
-     =========================================================
+     =============================================================================
        7. HERO / SECTION STYLING
-     =========================================================
-       We'll create a 'hero' class with an additional 
-       neon-glow overlay for the home page
+     =============================================================================
     */
     .hero-section {
         position: relative;
         text-align: center; 
         padding: 80px 20px; 
         margin-bottom: 2rem;
-        background: rgba(0, 0, 0, 0.3);
+        background: rgba(0, 0, 0, 0.4);
         border-radius: 10px;
         overflow: hidden;
     }
@@ -264,10 +269,12 @@ if options == "Home":
 # =========================
 elif options == "Locate Hospitals":
     st.title("Locate the Best Cancer Hospitals Nearby")
+    
     st.markdown("""
     **Find top-rated cancer hospitals specializing in your area. Use the interactive map below to explore nearby facilities.**
     """)
     
+    # User input for location
     location = st.text_input("Enter your city or ZIP code:", "New York")
     
     if st.button("Find Hospitals"):
@@ -387,7 +394,6 @@ elif options == "Locate Hospitals":
 # =========================
 elif options == "Accommodation Resources":
     st.title("Accommodation Resources")
-    
     st.markdown("""
     **Find lodging solutions for patients and their families during treatment. Below are some recommended resources:**
     """)
@@ -420,7 +426,6 @@ elif options == "Accommodation Resources":
 # =========================
 elif options == "Latest Research":
     st.title("Latest Research and AI-Driven Insights")
-    
     st.markdown("""
     **Stay updated with the latest research, treatment advancements, and breakthroughs related to your specific cancer type.**
     """)
@@ -489,7 +494,6 @@ elif options == "Latest Research":
 # =========================
 elif options == "Financial Support":
     st.title("Financial Support and Legal Options")
-    
     st.markdown("""
     **Access information on financial relief, legal rights, and assistance programs to help manage the financial burden of cancer treatment.**
     """)
@@ -535,7 +539,6 @@ elif options == "Financial Support":
 # =========================
 elif options == "Clinical Trials":
     st.title("Clinical Trials Finder")
-    
     st.markdown("""
     **Find relevant clinical trials based on your condition, location, and treatment phase. Participate in studies to access cutting-edge treatments.**
     """)
@@ -706,4 +709,3 @@ elif options == "Interactive Tools & Extras":
     - **GoFundMe**: [Create a Fundraiser](https://www.gofundme.com/)
     - **Crowdfunder**: [Start a Campaign](https://www.crowdfunder.com/)
     """)
-
