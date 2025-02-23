@@ -5,7 +5,9 @@ import folium
 from streamlit_folium import folium_static
 import xmltodict
 
+# -------------------------------
 # 1. PAGE CONFIG
+# -------------------------------
 st.set_page_config(
     page_title="Cancer Support App",
     layout="wide",
@@ -13,57 +15,116 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. CUSTOM CSS & LOTTIE BACKGROUND
+# -------------------------------
+# 2. CUSTOM CSS
+# -------------------------------
+# This CSS does four main things:
+# (1) Removes the default top gap
+# (2) Creates a full-screen "hero" with a vertical glowing beam in the background
+# (3) Makes all containers transparent so the background shows through
+# (4) Improves text readability, dropdown styling, etc.
 st.markdown(
     """
     <style>
-    /* ------------------------------------------------------------------
+    /* -------------------------------------------------------------------
        1. GLOBAL RESETS & FONTS
-    ------------------------------------------------------------------ */
+    ------------------------------------------------------------------- */
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
     html, body, [data-testid="stAppViewContainer"] {
-      margin: 0;
+      margin: 0; 
       padding: 0;
       font-family: 'Poppins', sans-serif;
-      background-color: #000000 !important; /* fallback if Lottie fails */
-      color: #FFFFFF !important;
-      overflow-x: hidden; /* no horizontal scroll */
+      color: #ffffff !important;
+      background: #000 !important; /* fallback color */
+      overflow-x: hidden;
     }
 
-    /* Hide default Streamlit menu & footer */
+    /* Hide Streamlit header & footer */
     [data-testid="stHeader"] {display: none !important;}
     footer {visibility: hidden;}
 
-    /* 
-      2. LOTTIE BACKGROUND
-      We'll place a <lottie-player> behind everything with z-index:-999 
-    */
-    .lottie-bg-container {
+    /* Remove top padding from main container so hero starts at very top */
+    .block-container {
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+
+    /* -------------------------------------------------------------------
+       2. BACKGROUND "VERTICAL BEAM" + SWIRLS
+       We'll create a hero container with pseudo-elements for the beam.
+    ------------------------------------------------------------------- */
+    body::before {
+      content: "";
       position: fixed;
       top: 0; left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100%; 
+      height: 100vh;
       z-index: -999;
-      overflow: hidden;
-    }
-    .lottie-bg-container lottie-player {
-      width: 100% !important;
-      height: 100% !important;
-      background: #00000000 !important;
+      background: #000; /* pure black behind everything */
     }
 
-    /* 
-      3. MAKE MAIN CONTENT TRANSPARENT 
-      so the background is visible
-    */
-    .block-container, .main, .css-18e3th9, .css-1cpxqw2, .css-1d391kg {
-      background: transparent !important;
+    /* The main hero effect: a vertical beam in the center + swirling glow. */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 100vh;
+      background: linear-gradient(
+        to bottom, 
+        rgba(255,255,255,0) 0%, 
+        rgba(255,255,255,0.6) 50%, 
+        rgba(255,255,255,0) 100%
+      );
+      box-shadow: 
+        0 0 60px 10px rgba(100,100,255,0.3),
+        0 0 120px 60px rgba(150,150,255,0.1);
+      animation: beamMove 6s ease-in-out infinite alternate;
+      z-index: -998;
     }
 
-    /* 
-      4. SIDEBAR STYLING 
-    */
+    /* Keyframe to move the beam up/down + fade slightly */
+    @keyframes beamMove {
+      0% {
+        transform: translateX(-50%) translateY(0);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateX(-50%) translateY(5%);
+        opacity: 0.4;
+      }
+    }
+
+    /* We can add swirling or pulsing glows behind the beam. 
+       We'll do that with a big radial gradient pseudo-element. */
+    .hero-glow {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; 
+      height: 100vh;
+      pointer-events: none;
+      z-index: -997;
+      background: radial-gradient(
+        circle at 50% 50%, 
+        rgba(0,128,255,0.15), 
+        transparent 60%
+      );
+      animation: swirl 8s infinite ease-in-out alternate;
+    }
+    @keyframes swirl {
+      0% {
+        transform: scale(1) rotate(0deg);
+      }
+      100% {
+        transform: scale(1.1) rotate(5deg);
+      }
+    }
+
+    /* -------------------------------------------------------------------
+       3. SIDEBAR STYLING
+    ------------------------------------------------------------------- */
     [data-testid="stSidebar"] {
       background: rgba(10, 10, 10, 0.8) !important;
       backdrop-filter: blur(8px);
@@ -74,37 +135,20 @@ st.markdown(
       text-shadow: 1px 1px 2px #000000;
     }
 
-    /* 
-      5. SCROLL-SNAP FOR FULL-SCREEN SECTIONS 
-    */
-    html {
-      scroll-behavior: smooth;
-    }
-    [data-testid="stAppViewContainer"] {
-      scroll-snap-type: y mandatory;
-    }
-    .section {
-      scroll-snap-align: start;
-      min-height: 100vh;
-      padding: 60px 20px;
-    }
-
-    /* 
-      6. HEADINGS & NEON GLOW
-    */
+    /* -------------------------------------------------------------------
+       4. HEADINGS & TEXT
+    ------------------------------------------------------------------- */
     h1, h2, h3, h4 {
       text-shadow: 0 0 8px rgba(255,255,255,0.1),
                    1px 1px 6px rgba(0,0,0,0.8);
       font-weight: 600;
       color: #ffffff;
     }
-    h1 {
-      font-size: 3rem !important;
-    }
+    h1 { font-size: 3rem !important; }
 
-    /* 
-      7. BUTTONS 
-    */
+    /* -------------------------------------------------------------------
+       5. BUTTONS
+    ------------------------------------------------------------------- */
     div.stButton > button {
       background: linear-gradient(to right, #ff0080, #7928ca);
       color: #fff;
@@ -122,9 +166,9 @@ st.markdown(
       box-shadow: 0 6px 14px rgba(0,0,0,0.4);
     }
 
-    /* 
-      8. INPUTS, SELECTS, TEXTAREAS
-    */
+    /* -------------------------------------------------------------------
+       6. INPUTS, SELECTS, TEXTAREAS
+    ------------------------------------------------------------------- */
     input, select, textarea {
       background-color: rgba(50, 50, 60, 0.8) !important;
       color: #fff !important;
@@ -135,8 +179,6 @@ st.markdown(
       outline: none !important;
       border: 1px solid #7928ca !important;
     }
-
-    /* 8a. Fix placeholder color in dropdowns / multiselect */
     .stMultiSelect .css-1wa3eu0-placeholder {
       color: #aaa !important;
     }
@@ -145,9 +187,9 @@ st.markdown(
       background-color: #333 !important;
     }
 
-    /* 
-      9. TABLES & DATAFRAMES 
-    */
+    /* -------------------------------------------------------------------
+       7. DATAFRAMES
+    ------------------------------------------------------------------- */
     .stDataFrame, .stDataFrame table {
       color: #fff !important;
       background-color: #2f2f3f !important;
@@ -162,9 +204,9 @@ st.markdown(
       color: #f0f0f0 !important;
     }
 
-    /* 
-      10. SCROLLBAR 
-    */
+    /* -------------------------------------------------------------------
+       8. SCROLLBAR
+    ------------------------------------------------------------------- */
     ::-webkit-scrollbar {
       width: 8px;
     }
@@ -177,22 +219,15 @@ st.markdown(
     }
     </style>
 
-    <!--  Lottie Background Container  -->
-    <div class="lottie-bg-container">
-      <lottie-player 
-          src="https://assets1.lottiefiles.com/packages/lf20_3rwasyjy.json" 
-          background="transparent"  
-          speed="1"  
-          loop  
-          autoplay
-      >
-      </lottie-player>
-    </div>
+    <!-- Additional swirl behind the beam -->
+    <div class="hero-glow"></div>
     """,
     unsafe_allow_html=True
 )
 
-# 3. SIDEBAR NAVIGATION (ANCHOR LINKS)
+# -------------------------------
+# 3. SIDEBAR NAVIGATION (if you want anchor links)
+# -------------------------------
 st.sidebar.title("Navigation")
 st.sidebar.markdown("""
 <ul style="list-style:none; padding-left: 0;">
@@ -207,16 +242,15 @@ st.sidebar.markdown("""
 </ul>
 """, unsafe_allow_html=True)
 
-
+# -------------------------------
 # 4. HOME SECTION
-st.markdown('<div class="section" id="home"></div>', unsafe_allow_html=True)
-st.markdown("""
-# Home
-## Cancer Support Web Application
+# -------------------------------
+st.markdown('<div id="home"></div>', unsafe_allow_html=True)
+st.title("Cancer Support Web Application")
 
+st.markdown("""
 A comprehensive platform to assist cancer patients and their families with hospital searches, 
 accommodation resources, latest research, clinical trials, financial support, and more.
-
 ---
 """)
 
@@ -225,13 +259,14 @@ st.image(
     use_column_width=True
 )
 
-
+# -------------------------------
 # 5. LOCATE HOSPITALS
-st.markdown('<div class="section" id="locate-hospitals"></div>', unsafe_allow_html=True)
+# -------------------------------
+st.markdown('<div id="locate-hospitals"></div>', unsafe_allow_html=True)
 st.title("Locate the Best Cancer Hospitals Nearby")
 
 st.markdown("""
-Find top-rated cancer hospitals in your area. Use the interactive map below to explore nearby facilities.
+Find top-rated cancer hospitals specializing in your area. Use the interactive map below to explore nearby facilities.
 """)
 
 location = st.text_input("Enter your city or ZIP code:", "New York")
@@ -309,9 +344,10 @@ if st.button("Find Hospitals"):
         else:
             st.warning("Location not found. Please try again.")
 
-
+# -------------------------------
 # 6. ACCOMMODATION RESOURCES
-st.markdown('<div class="section" id="accommodation-resources"></div>', unsafe_allow_html=True)
+# -------------------------------
+st.markdown('<div id="accommodation-resources"></div>', unsafe_allow_html=True)
 st.title("Accommodation Resources")
 st.markdown("""
 **Find lodging solutions for patients and their families during treatment. Below are some recommended resources:**
@@ -340,9 +376,10 @@ st.markdown("""
 - [CancerCare Housing Assistance](https://www.cancercare.org/support_resources/housing_assistance)
 """)
 
-
+# -------------------------------
 # 7. LATEST RESEARCH
-st.markdown('<div class="section" id="latest-research"></div>', unsafe_allow_html=True)
+# -------------------------------
+st.markdown('<div id="latest-research"></div>', unsafe_allow_html=True)
 st.title("Latest Research and AI-Driven Insights")
 st.markdown("""
 **Stay updated with the latest research, treatment advancements, and breakthroughs related to your specific cancer type.**
@@ -407,9 +444,10 @@ st.markdown("""
 *AI chatbot integration is under development!*
 """)
 
-
+# -------------------------------
 # 8. FINANCIAL SUPPORT
-st.markdown('<div class="section" id="financial-support"></div>', unsafe_allow_html=True)
+# -------------------------------
+st.markdown('<div id="financial-support"></div>', unsafe_allow_html=True)
 st.title("Financial Support and Legal Options")
 st.markdown("""
 **Access information on financial relief, legal rights, and assistance programs to help manage the financial burden of cancer treatment.**
@@ -445,14 +483,15 @@ with st.form("financial_calculator"):
     retirement_withdraw = st.number_input("Enter amount to withdraw from retirement account ($):", min_value=0, value=10000, step=1000)
     submitted = st.form_submit_button("Calculate")
     if submitted:
-        # Placeholder calculation: e.g., 0% for Stage IV
-        tax = 0
+        # Placeholder calculation
+        tax = 0  # e.g., 0% for Stage IV
         st.write(f"**Estimated Tax on Withdrawal:** ${tax}")
         st.success("Calculation completed. Please consult a financial advisor for accurate information.")
 
-
+# -------------------------------
 # 9. CLINICAL TRIALS
-st.markdown('<div class="section" id="clinical-trials"></div>', unsafe_allow_html=True)
+# -------------------------------
+st.markdown('<div id="clinical-trials"></div>', unsafe_allow_html=True)
 st.title("Clinical Trials Finder")
 st.markdown("""
 **Find relevant clinical trials based on your condition, location, and treatment phase. Participate in studies to access cutting-edge treatments.**
@@ -528,9 +567,10 @@ st.markdown("""
 - **Cons**: Possible side effects, time commitment, uncertain outcomes.
 """)
 
-
+# -------------------------------
 # 10. EMOTIONAL & SOCIAL SUPPORT
-st.markdown('<div class="section" id="emotional-support"></div>', unsafe_allow_html=True)
+# -------------------------------
+st.markdown('<div id="emotional-support"></div>', unsafe_allow_html=True)
 st.title("Emotional and Social Support")
 st.markdown("""
 **Address mental health and community-building needs with the resources below.**
@@ -550,9 +590,10 @@ st.markdown("""
 - **Local Hospitals and Clinics**: Many offer in-person and virtual support groups.
 """)
 
-
+# -------------------------------
 # 11. INTERACTIVE TOOLS & EXTRAS
-st.markdown('<div class="section" id="interactive-tools"></div>', unsafe_allow_html=True)
+# -------------------------------
+st.markdown('<div id="interactive-tools"></div>', unsafe_allow_html=True)
 st.title("Interactive Tools and Extras")
 st.markdown("""
 **Utilize the tools below to manage tasks and support your journey.**
