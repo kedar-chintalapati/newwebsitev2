@@ -5,9 +5,7 @@ import folium
 from streamlit_folium import folium_static
 import xmltodict
 
-# -------------------------------
-# PAGE & GENERAL CONFIG
-# -------------------------------
+# 1. PAGE CONFIG
 st.set_page_config(
     page_title="Cancer Support App",
     layout="wide",
@@ -15,68 +13,72 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# -------------------------------
-# CUSTOM CSS & VIDEO BACKGROUND
-# -------------------------------
-# IMPORTANT:
-# - The video URL below is just an example from Pexels (royalty-free).
-# - Replace it with your own hosted video or a different link.
-# - Or switch to a pure CSS animation approach if you prefer.
+# 2. CUSTOM CSS & LOTTIE BACKGROUND
 st.markdown(
     """
     <style>
-    /* 1. Hide Streamlit header & footer */
+    /* ------------------------------------------------------------------
+       1. GLOBAL RESETS & FONTS
+    ------------------------------------------------------------------ */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    html, body, [data-testid="stAppViewContainer"] {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #000000 !important; /* fallback if Lottie fails */
+      color: #FFFFFF !important;
+      overflow-x: hidden; /* no horizontal scroll */
+    }
+
+    /* Hide default Streamlit menu & footer */
     [data-testid="stHeader"] {display: none !important;}
     footer {visibility: hidden;}
 
-    /* 2. Import Google Font (Poppins) */
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-
-    /* 3. Body resets */
-    html, body, [data-testid="stAppViewContainer"] {
-        margin: 0;
-        padding: 0;
-        font-family: 'Poppins', sans-serif;
-        background-color: #000000 !important; /* fallback if video fails */
-        overflow-x: hidden; /* no horizontal scroll */
-        color: #FFFFFF !important;
-    }
-
-    /* 4. Fullscreen Video Background 
-       - You can replace the MP4 source below with your own link or 
-         a short, looped, royalty-free clip you host somewhere.
+    /* 
+      2. LOTTIE BACKGROUND
+      We'll place a <lottie-player> behind everything with z-index:-999 
     */
-    body::before {
-      content: "";
+    .lottie-bg-container {
       position: fixed;
       top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: -2; /* behind everything */
-      background: #000000; /* fallback */
+      width: 100%;
+      height: 100%;
+      z-index: -999;
+      overflow: hidden;
     }
-    /* We'll place an actual <video> in the HTML below, absolutely positioned. */
+    .lottie-bg-container lottie-player {
+      width: 100% !important;
+      height: 100% !important;
+      background: #00000000 !important;
+    }
 
-    /* 5. Make main block container transparent, so video shows through */
+    /* 
+      3. MAKE MAIN CONTENT TRANSPARENT 
+      so the background is visible
+    */
     .block-container, .main, .css-18e3th9, .css-1cpxqw2, .css-1d391kg {
-        background: transparent !important;
+      background: transparent !important;
     }
 
-    /* 6. Fancy Sidebar */
+    /* 
+      4. SIDEBAR STYLING 
+    */
     [data-testid="stSidebar"] {
-        background: rgba(10, 10, 10, 0.8) !important;
-        backdrop-filter: blur(8px);
+      background: rgba(10, 10, 10, 0.8) !important;
+      backdrop-filter: blur(8px);
     }
-    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] li, [data-testid="stSidebar"] div, [data-testid="stSidebar"] span {
-        color: #EEE !important;
-        text-shadow: 1px 1px 2px #000000;
+    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] li, 
+    [data-testid="stSidebar"] div, [data-testid="stSidebar"] span {
+      color: #EEE !important;
+      text-shadow: 1px 1px 2px #000000;
     }
 
-    /* 7. Scroll Snap for Full-Screen Sections 
-       - This will make each "section" snap into view on scroll.
-       - The .section class will be assigned to each major block.
+    /* 
+      5. SCROLL-SNAP FOR FULL-SCREEN SECTIONS 
     */
     html {
-      scroll-behavior: smooth; /* smooth scrolling */
+      scroll-behavior: smooth;
     }
     [data-testid="stAppViewContainer"] {
       scroll-snap-type: y mandatory;
@@ -87,103 +89,110 @@ st.markdown(
       padding: 60px 20px;
     }
 
-    /* 8. Headings & Neon Glow */
+    /* 
+      6. HEADINGS & NEON GLOW
+    */
     h1, h2, h3, h4 {
-        text-shadow: 0 0 8px rgba(255,255,255,0.2),
-                     1px 1px 6px rgba(0,0,0,0.8);
-        font-weight: 600;
-        color: #FFFFFF;
+      text-shadow: 0 0 8px rgba(255,255,255,0.1),
+                   1px 1px 6px rgba(0,0,0,0.8);
+      font-weight: 600;
+      color: #ffffff;
+    }
+    h1 {
+      font-size: 3rem !important;
     }
 
-    /* 9. Buttons */
+    /* 
+      7. BUTTONS 
+    */
     div.stButton > button {
-        background: linear-gradient(to right, #ff0080, #7928ca);
-        color: #fff;
-        border: none;
-        border-radius: 30px;
-        padding: 0.6rem 1.5rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.3s;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+      background: linear-gradient(to right, #ff0080, #7928ca);
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      padding: 0.6rem 1.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
     }
     div.stButton > button:hover {
-        filter: brightness(1.1);
-        transform: scale(1.03);
-        box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+      filter: brightness(1.1);
+      transform: scale(1.03);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.4);
     }
 
-    /* 10. Inputs, Selects, Textareas */
+    /* 
+      8. INPUTS, SELECTS, TEXTAREAS
+    */
     input, select, textarea {
-        background-color: rgba(50, 50, 60, 0.8) !important;
-        color: #fff !important;
-        border: 1px solid #555 !important;
-        border-radius: 6px !important;
+      background-color: rgba(50, 50, 60, 0.8) !important;
+      color: #fff !important;
+      border: 1px solid #555 !important;
+      border-radius: 6px !important;
     }
     input:focus, select:focus, textarea:focus {
-        outline: none !important;
-        border: 1px solid #7928ca !important;
+      outline: none !important;
+      border: 1px solid #7928ca !important;
     }
 
-    /* 11. DataFrame styling */
+    /* 8a. Fix placeholder color in dropdowns / multiselect */
+    .stMultiSelect .css-1wa3eu0-placeholder {
+      color: #aaa !important;
+    }
+    .stMultiSelect div[role="option"] {
+      color: #fff !important;
+      background-color: #333 !important;
+    }
+
+    /* 
+      9. TABLES & DATAFRAMES 
+    */
     .stDataFrame, .stDataFrame table {
-        color: #fff !important;
-        background-color: #2f2f3f !important;
+      color: #fff !important;
+      background-color: #2f2f3f !important;
     }
     .stDataFrame tr:nth-child(even) {
-        background-color: #3f3f5f !important;
+      background-color: #3f3f5f !important;
     }
     .stDataFrame thead tr {
-        background-color: #444 !important;
+      background-color: #444 !important;
     }
     .stDataFrame thead tr th {
-        color: #f0f0f0 !important;
+      color: #f0f0f0 !important;
     }
 
-    /* 12. MultiSelect / Dropdown fix for text color */
-    .stMultiSelect, .stMultiSelect div[role="option"] {
-        color: #fff !important;
-        background-color: #333 !important;
-    }
-    .stMultiSelect .css-1wa3eu0-placeholder {
-        color: #aaa !important;
-    }
-
-    /* 13. Scrollbar styling */
+    /* 
+      10. SCROLLBAR 
+    */
     ::-webkit-scrollbar {
-        width: 8px;
+      width: 8px;
     }
     ::-webkit-scrollbar-track {
-        background: #1c1c1c;
+      background: #1c1c1c;
     }
     ::-webkit-scrollbar-thumb {
-        background-color: #666;
-        border-radius: 4px;
+      background-color: #666;
+      border-radius: 4px;
     }
-
     </style>
 
-    <!-- Add a fixed video element behind everything -->
-    <video autoplay muted loop playsinline 
-           style="
-             position: fixed;
-             top: 0; left: 0;
-             min-width: 100%; 
-             min-height: 100%;
-             object-fit: cover;
-             z-index: -3;
-             opacity: 0.5;"
-    >
-      <source src="https://player.vimeo.com/external/324388253.sd.mp4?s=3ea8866bf71e51dddc6097514e2df978dc4ca09f&profile_id=165" type="video/mp4">
-      <!-- Fallback if the video doesn't load -->
-    </video>
+    <!--  Lottie Background Container  -->
+    <div class="lottie-bg-container">
+      <lottie-player 
+          src="https://assets1.lottiefiles.com/packages/lf20_3rwasyjy.json" 
+          background="transparent"  
+          speed="1"  
+          loop  
+          autoplay
+      >
+      </lottie-player>
+    </div>
     """,
     unsafe_allow_html=True
 )
 
-# -------------------------------
-# SIDEBAR NAVIGATION (ANCHORS)
-# -------------------------------
+# 3. SIDEBAR NAVIGATION (ANCHOR LINKS)
 st.sidebar.title("Navigation")
 st.sidebar.markdown("""
 <ul style="list-style:none; padding-left: 0;">
@@ -198,15 +207,16 @@ st.sidebar.markdown("""
 </ul>
 """, unsafe_allow_html=True)
 
-# -------------------------------
-# 1. HOME SECTION
-# -------------------------------
+
+# 4. HOME SECTION
 st.markdown('<div class="section" id="home"></div>', unsafe_allow_html=True)
 st.markdown("""
-## Home
-### Cancer Support Web Application
+# Home
+## Cancer Support Web Application
+
 A comprehensive platform to assist cancer patients and their families with hospital searches, 
 accommodation resources, latest research, clinical trials, financial support, and more.
+
 ---
 """)
 
@@ -215,28 +225,21 @@ st.image(
     use_column_width=True
 )
 
-# -------------------------------
-# 2. LOCATE HOSPITALS
-# -------------------------------
+
+# 5. LOCATE HOSPITALS
 st.markdown('<div class="section" id="locate-hospitals"></div>', unsafe_allow_html=True)
 st.title("Locate the Best Cancer Hospitals Nearby")
 
 st.markdown("""
-Find top-rated cancer hospitals specializing in your area. Use the interactive map below to explore nearby facilities.
+Find top-rated cancer hospitals in your area. Use the interactive map below to explore nearby facilities.
 """)
 
-location = st.text_input("Enter your city or ZIP code:", "New York", key="locate_input")
-if st.button("Find Hospitals", key="locate_button"):
+location = st.text_input("Enter your city or ZIP code:", "New York")
+if st.button("Find Hospitals"):
     with st.spinner("Searching for hospitals..."):
-        headers = {
-            "User-Agent": "CancerSupportApp/1.0 (your_email@example.com)"
-        }
+        headers = {"User-Agent": "CancerSupportApp/1.0 (your_email@example.com)"}
         geocode_url = "https://nominatim.openstreetmap.org/search"
-        geocode_params = {
-            "q": location,
-            "format": "json",
-            "limit": 1
-        }
+        geocode_params = {"q": location, "format": "json", "limit": 1}
         
         try:
             geocode_response = requests.get(geocode_url, headers=headers, params=geocode_params, timeout=10)
@@ -276,22 +279,25 @@ if st.button("Find Hospitals", key="locate_button"):
                     lat_h = element.get('lat') or (element.get('center', {}).get('lat') if element.get('center') else None)
                     lon_h = element.get('lon') or (element.get('center', {}).get('lon') if element.get('center') else None)
                     if lat_h and lon_h:
-                        hospitals.append({
-                            "Name": name,
-                            "Latitude": lat_h,
-                            "Longitude": lon_h
-                        })
+                        hospitals.append({"Name": name, "Latitude": lat_h, "Longitude": lon_h})
                 
                 if hospitals:
                     df_hospitals = pd.DataFrame(hospitals)
                     # Display map
                     m = folium.Map(location=[lat, lon], zoom_start=12)
-                    folium.Marker([lat, lon], popup="Your Location",
-                                  icon=folium.Icon(color='red', icon='home')).add_to(m)
-                    for idx, row in df_hospitals.iterrows():
-                        folium.Marker([row['Latitude'], row['Longitude']],
-                                      popup=row['Name'],
-                                      icon=folium.Icon(color='blue', icon='plus-sign')).add_to(m)
+                    folium.Marker(
+                        [lat, lon],
+                        popup="Your Location",
+                        icon=folium.Icon(color='red', icon='home')
+                    ).add_to(m)
+                    
+                    for _, row in df_hospitals.iterrows():
+                        folium.Marker(
+                            [row['Latitude'], row['Longitude']],
+                            popup=row['Name'],
+                            icon=folium.Icon(color='blue', icon='plus-sign')
+                        ).add_to(m)
+                    
                     folium_static(m, width=700, height=500)
                     
                     st.subheader("List of Hospitals")
@@ -303,9 +309,8 @@ if st.button("Find Hospitals", key="locate_button"):
         else:
             st.warning("Location not found. Please try again.")
 
-# -------------------------------
-# 3. ACCOMMODATION RESOURCES
-# -------------------------------
+
+# 6. ACCOMMODATION RESOURCES
 st.markdown('<div class="section" id="accommodation-resources"></div>', unsafe_allow_html=True)
 st.title("Accommodation Resources")
 st.markdown("""
@@ -335,17 +340,16 @@ st.markdown("""
 - [CancerCare Housing Assistance](https://www.cancercare.org/support_resources/housing_assistance)
 """)
 
-# -------------------------------
-# 4. LATEST RESEARCH
-# -------------------------------
+
+# 7. LATEST RESEARCH
 st.markdown('<div class="section" id="latest-research"></div>', unsafe_allow_html=True)
 st.title("Latest Research and AI-Driven Insights")
 st.markdown("""
 **Stay updated with the latest research, treatment advancements, and breakthroughs related to your specific cancer type.**
 """)
 
-cancer_type = st.text_input("Enter your cancer type (e.g., Breast Cancer):", "Breast Cancer", key="research_input")
-if st.button("Get Latest Research", key="research_button"):
+cancer_type = st.text_input("Enter your cancer type (e.g., Breast Cancer):", "Breast Cancer")
+if st.button("Get Latest Research"):
     with st.spinner("Fetching latest research articles..."):
         base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
         params = {
@@ -403,9 +407,8 @@ st.markdown("""
 *AI chatbot integration is under development!*
 """)
 
-# -------------------------------
-# 5. FINANCIAL SUPPORT
-# -------------------------------
+
+# 8. FINANCIAL SUPPORT
 st.markdown('<div class="section" id="financial-support"></div>', unsafe_allow_html=True)
 st.title("Financial Support and Legal Options")
 st.markdown("""
@@ -442,14 +445,13 @@ with st.form("financial_calculator"):
     retirement_withdraw = st.number_input("Enter amount to withdraw from retirement account ($):", min_value=0, value=10000, step=1000)
     submitted = st.form_submit_button("Calculate")
     if submitted:
-        # Placeholder calculation
-        tax = 0  # e.g., 0% for Stage IV
+        # Placeholder calculation: e.g., 0% for Stage IV
+        tax = 0
         st.write(f"**Estimated Tax on Withdrawal:** ${tax}")
         st.success("Calculation completed. Please consult a financial advisor for accurate information.")
 
-# -------------------------------
-# 6. CLINICAL TRIALS
-# -------------------------------
+
+# 9. CLINICAL TRIALS
 st.markdown('<div class="section" id="clinical-trials"></div>', unsafe_allow_html=True)
 st.title("Clinical Trials Finder")
 st.markdown("""
@@ -473,9 +475,7 @@ if st.button("Find Clinical Trials", key="ct_button"):
             "max_rnk": 20,
             "fmt": "xml"
         }
-        headers = {
-            "User-Agent": "CancerSupportApp/1.0 (your_email@example.com)"
-        }
+        headers = {"User-Agent": "CancerSupportApp/1.0 (your_email@example.com)"}
         
         try:
             response = requests.get(base_url, params=params, headers=headers, timeout=10)
@@ -528,9 +528,8 @@ st.markdown("""
 - **Cons**: Possible side effects, time commitment, uncertain outcomes.
 """)
 
-# -------------------------------
-# 7. EMOTIONAL & SOCIAL SUPPORT
-# -------------------------------
+
+# 10. EMOTIONAL & SOCIAL SUPPORT
 st.markdown('<div class="section" id="emotional-support"></div>', unsafe_allow_html=True)
 st.title("Emotional and Social Support")
 st.markdown("""
@@ -551,9 +550,8 @@ st.markdown("""
 - **Local Hospitals and Clinics**: Many offer in-person and virtual support groups.
 """)
 
-# -------------------------------
-# 8. INTERACTIVE TOOLS & EXTRAS
-# -------------------------------
+
+# 11. INTERACTIVE TOOLS & EXTRAS
 st.markdown('<div class="section" id="interactive-tools"></div>', unsafe_allow_html=True)
 st.title("Interactive Tools and Extras")
 st.markdown("""
