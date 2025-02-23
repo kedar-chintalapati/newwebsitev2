@@ -13,7 +13,7 @@ st.set_page_config(
     page_icon=":hospital:"
 )
 
-# --- CUSTOM CSS STYLES ---
+# --- CUSTOM CSS WITH ANIMATIONS ---
 st.markdown(
     """
     <style>
@@ -21,20 +21,36 @@ st.markdown(
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
 
-    /* Global fonts and background */
-    html, body {
-        background: linear-gradient(135deg, #0e0e0e 0%, #1c1c1c 100%);
-        color: #FFFFFF;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* 
+     =========================================================
+       1. GLOBAL BACKGROUND ANIMATION 
+     =========================================================
+    */
+    body {
+        margin: 0; padding: 0;
+        background: linear-gradient(135deg, #232526, #414345, #232526);
+        background-size: 600% 600%;
+        animation: gradientBG 20s ease infinite;
+        color: #FFFFFF !important;
+        font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
-    /* Sidebar styling */
+    /* 
+     =========================================================
+       2. SIDEBAR STYLING
+     =========================================================
+    */
     .css-1cpxqw2, .css-1d391kg, .css-18e3th9 {
-        background-color: #1c1c1c !important;
+        background-color: rgba(10, 10, 10, 0.85) !important;
         border-right: 1px solid #444 !important;
     }
     .css-1cpxqw2 a, .css-1d391kg a {
-        color: #EEE !important;
+        color: #DDD !important;
         font-weight: 500 !important;
     }
     .css-1cpxqw2 .css-qrbaxs, .css-1d391kg .css-qrbaxs {
@@ -53,54 +69,141 @@ st.markdown(
         border-radius: 4px;
     }
 
-    /* Titles and headings */
+    /* 
+     =========================================================
+       3. HEADINGS & TEXT
+     =========================================================
+    */
     h1, h2, h3, h4 {
-        text-shadow: 1px 1px 2px #000000;
+        font-family: 'Poppins', sans-serif;
+        text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.8),
+                     0 0 8px rgba(255, 255, 255, 0.1);
+    }
+    h1 {
+        font-size: 3rem !important;
+    }
+    h2 {
+        font-size: 2.2rem !important;
+    }
+    h3 {
+        font-size: 1.6rem !important;
+    }
+    h4 {
+        font-size: 1.3rem !important;
     }
 
-    /* Buttons */
+    /* Paragraphs */
+    p, div, label, span, li {
+        color: #eee !important;
+    }
+
+    /* 
+     =========================================================
+       4. BUTTONS
+     =========================================================
+    */
     div.stButton > button {
-        background: linear-gradient(135deg, #F83600 0%, #F9D423 100%);
-        color: #000;
+        background: linear-gradient(to right, #6a11cb, #2575fc);
+        color: #fff;
         border: none;
-        border-radius: 8px;
-        padding: 0.6rem 1.2rem;
+        border-radius: 30px;
+        padding: 0.6rem 1.5rem;
         font-weight: 600;
         cursor: pointer;
         transition: 0.3s;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.3);
     }
     div.stButton > button:hover {
         filter: brightness(1.1);
-        transform: scale(1.02);
+        transform: scale(1.03);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.4);
     }
 
-    /* Inputs */
+    /* 
+     =========================================================
+       5. FORM INPUTS
+     =========================================================
+    */
     input, select, textarea {
         border-radius: 6px !important;
-        background-color: #2f2f2f !important;
+        background-color: rgba(50, 50, 60, 0.8) !important;
         color: #fff !important;
         border: 1px solid #555 !important;
+        font-family: 'Poppins', sans-serif;
     }
     input:focus, select:focus, textarea:focus {
         outline: none !important;
-        border: 1px solid #f9d423 !important;
+        border: 1px solid #2575fc !important;
     }
 
-    /* Dataframe styling */
+    /* 
+     =========================================================
+       6. TABLES & DATAFRAMES
+     =========================================================
+    */
     .stDataFrame, .stDataFrame table {
         color: #fff !important;
-        background-color: #2f2f2f !important;
+        background-color: #2f2f3f !important;
     }
     .stDataFrame tr:nth-child(even) {
-        background-color: #3f3f3f !important;
+        background-color: #3f3f5f !important;
     }
     .stDataFrame thead tr {
         background-color: #444 !important;
     }
-
-    /* Headers in dataframes */
     .stDataFrame thead tr th {
         color: #f0f0f0 !important;
+    }
+
+    /* 
+     =========================================================
+       7. HERO / SECTION STYLING
+     =========================================================
+       We'll create a 'hero' class with an additional 
+       neon-glow overlay for the home page
+    */
+    .hero-section {
+        position: relative;
+        text-align: center; 
+        padding: 80px 20px; 
+        margin-bottom: 2rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .hero-section::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(#ffffff33, #00000000);
+        animation: pulse 6s infinite;
+        z-index: 1;
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 0.7; }
+        50% { transform: scale(1.2); opacity: 0.3; }
+        100% { transform: scale(1); opacity: 0.7; }
+    }
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .hero-content h1 {
+        font-size: 3.5rem;
+        margin-bottom: 0.5rem;
+        color: #fff;
+        text-shadow: 2px 2px 10px rgba(0,0,0,0.7),
+                     0 0 10px rgba(255,255,255,0.2);
+    }
+    .hero-content p {
+        font-size: 1.2rem;
+        line-height: 1.6;
+        color: #ddd;
     }
     </style>
     """,
@@ -127,21 +230,13 @@ if options == "Home":
     # Hero Section
     st.markdown(
         """
-        <div style="
-            text-align: center; 
-            padding: 60px 20px; 
-            background: linear-gradient(135deg, rgba(248,54,0,0.2), rgba(249,212,35,0.2));
-            border-radius: 10px;
-            margin-bottom: 2rem;">
-            <h1 style="font-size: 3rem; color: #ffffff; 
-                       text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
-                       margin-bottom: 0.5rem;">
-                Cancer Support Web Application
-            </h1>
-            <p style="font-size: 1.2rem; max-width: 700px; margin: 0 auto; line-height: 1.6; color: #f0f0f0;">
-                A comprehensive platform to assist cancer patients and their families with hospital searches, 
-                accommodation resources, latest research, clinical trials, financial support, and more.
-            </p>
+        <div class="hero-section">
+            <div class="hero-content">
+                <h1>Cancer Support Web Application</h1>
+                <p>A comprehensive platform to assist cancer patients and their families 
+                   with hospital searches, accommodation resources, latest research, 
+                   clinical trials, financial support, and more.</p>
+            </div>
         </div>
         """,
         unsafe_allow_html=True
@@ -169,22 +264,17 @@ if options == "Home":
 # =========================
 elif options == "Locate Hospitals":
     st.title("Locate the Best Cancer Hospitals Nearby")
-    
     st.markdown("""
     **Find top-rated cancer hospitals specializing in your area. Use the interactive map below to explore nearby facilities.**
     """)
     
-    # User input for location
     location = st.text_input("Enter your city or ZIP code:", "New York")
     
     if st.button("Find Hospitals"):
         with st.spinner("Searching for hospitals..."):
-            # Define headers with User-Agent for Nominatim API
             headers = {
                 "User-Agent": "CancerSupportApp/1.0 (your_email@example.com)"
             }
-            
-            # Geocoding using Nominatim with headers
             geocode_url = "https://nominatim.openstreetmap.org/search"
             geocode_params = {
                 "q": location,
@@ -224,7 +314,6 @@ elif options == "Locate Hospitals":
                     st.error("Invalid latitude or longitude values received.")
                     st.stop()
                 
-                # Overpass API to find hospitals
                 overpass_url = "http://overpass-api.de/api/interpreter"
                 overpass_query = f"""
                 [out:json];
@@ -340,7 +429,6 @@ elif options == "Latest Research":
     
     if st.button("Get Latest Research"):
         with st.spinner("Fetching latest research articles..."):
-            # Fetch latest 10 articles from PubMed
             base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
             params = {
                 "db": "pubmed",
@@ -353,7 +441,6 @@ elif options == "Latest Research":
             id_list = response['esearchresult']['idlist']
             
             if id_list:
-                # Fetch article details
                 fetch_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
                 fetch_params = {
                     "db": "pubmed",
@@ -382,7 +469,6 @@ elif options == "Latest Research":
             else:
                 st.warning("No articles found for the specified cancer type.")
 
-    # Placeholder for Notifications and AI Chatbot
     st.markdown("---")
     st.header("Stay Informed")
     st.markdown("""
@@ -461,7 +547,6 @@ elif options == "Clinical Trials":
     
     if st.button("Find Clinical Trials"):
         with st.spinner("Searching for clinical trials..."):
-            # Refine the search query with field-specific tags
             query = f"{cancer_type}[Condition] AND {location}[Location]"
             if phase != "All":
                 query += f" AND {phase}[Phase]"
@@ -473,8 +558,6 @@ elif options == "Clinical Trials":
                 "max_rnk": 20,
                 "fmt": "xml"
             }
-            
-            # Define headers with User-Agent
             headers = {
                 "User-Agent": "CancerSupportApp/1.0 (your_email@example.com)"
             }
@@ -492,7 +575,6 @@ elif options == "Clinical Trials":
                 st.error(f"An error occurred while fetching clinical trials: {req_err}")
                 st.stop()
             
-            # Parse the XML response
             try:
                 data_dict = xmltodict.parse(response.content)
                 studies = data_dict.get('clinical_studies', {}).get('clinical_study', [])
@@ -506,7 +588,6 @@ elif options == "Clinical Trials":
                         title = study.get('official_title', 'No Title')
                         status = study.get('overall_status', 'Status Unknown')
                         
-                        # Handle multiple locations
                         location_info = study.get('location_countries', {}).get('location_country', [])
                         if isinstance(location_info, dict):
                             location_info = [location_info]
@@ -544,7 +625,6 @@ elif options == "Clinical Trials":
 # =========================
 elif options == "Emotional & Social Support":
     st.title("Emotional and Social Support")
-    
     st.markdown("""
     **Address mental health and community-building needs with the resources below.**
     """)
@@ -568,12 +648,10 @@ elif options == "Emotional & Social Support":
 # =========================
 elif options == "Interactive Tools & Extras":
     st.title("Interactive Tools and Extras")
-    
     st.markdown("""
     **Utilize the tools below to manage tasks and support your journey.**
     """)
     
-    # Checklist Generator
     st.header("Checklist Generator")
     st.markdown("Create your personalized to-do list based on your needs.")
     
@@ -619,7 +697,6 @@ elif options == "Interactive Tools & Extras":
     
     st.markdown("---")
     
-    # Donation Hub
     st.header("Donation Hub")
     st.markdown("""
     **Support patients in need by donating to reputable charities and crowdfunding platforms:**
